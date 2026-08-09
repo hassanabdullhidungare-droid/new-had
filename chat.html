@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="ha">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H A D Chat - Hira</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<style>
+:root {
+--primary: #008069;
+--secondary: #00695c;
+--dark: #073042;
+--text: #333;
+--light: #f9f9f9;
+--danger: #e53935;
+--accent: #e0f7fa;
+--bubble-me: #dcf8c6;
+--bubble-them: #ffffff;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+color: var(--text);
+line-height: 1.6;
+background: #f0f2f5;
+height: 100vh;
+overflow: hidden;
+}
+
+/* Top bar */
+.topbar {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 20px;
+background: var(--primary);
+color: white;
+box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+z-index: 50;
+}
+.topbar .back-btn {
+color: white;
+font-size: 1.2em;
+cursor: pointer;
+text-decoration: none;
+}
+.topbar .brand {
+font-weight: bold;
+font-size: 1.2em;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.topbar .status {
+margin-left: auto;
+font-size: 0.8em;
+display: flex;
+align-items: center;
+gap: 5px;
+}
+.status-dot {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+background: #ff9800;
+transition: 0.3s;
+}
+.status-dot.online { background: #4caf50; }
+.status-dot.offline { background: #f44336; }
+
+/* Main layout */
+.chat-app {
+display: grid;
+grid-template-columns: 320px 1fr;
+height: calc(100vh - 56px);
+}
+
+/* Sidebar - Contacts */
+.contacts-sidebar {
+background: white;
+border-right: 1px solid #e0e0e0;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+}
+.contacts-header {
+padding: 15px;
+border-bottom: 1px solid #f0f0f0;
+}
+.contacts-header h3 {
+color: var(--dark);
+font-size: 1.1em;
+margin-bottom: 10px;
+}
+.add-contact {
+display: flex;
+gap: 8px;
+}
+.add-contact input {
+flex: 1;
+padding: 10px 12px;
+border: 2px solid #e0e0e0;
+border-radius: 8px;
+font-size: 0.9em;
+outline: none;
+}
+.add-contact input:focus { border-color: var(--primary); }
+.add-contact button {
+padding: 10px 15px;
+background: var(--primary);
+color: white;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-size: 0.9em;
+white-space: nowrap;
+}
+.add-contact button:hover { background: var(--secondary); }
+
+.contacts-list {
+flex: 1;
+overflow-y: auto;
+}
+.contact-item {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 15px;
+cursor: pointer;
+border-bottom: 1px solid #f5f5f5;
+transition: 0.2s;
+}
+.contact-item:hover { background: var(--light); }
+.contact-item.active { background: var(--accent); }
+.contact-avatar {
+width: 45px;
+height: 45px;
+border-radius: 50%;
+background: var(--accent);
+display: flex;
+align-items: center;
+justify-content: center;
+color: var(--primary);
+font-weight: bold;
+overflow: hidden;
+flex-shrink: 0;
+}
+.contact-avatar img {
+width: 100%; height: 100%; object-fit: cover;
+}
+.contact-info { flex: 1; min-width: 0; }
+.contact-info .name {
+font-weight: 600;
+font-size: 0.95em;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.contact-info .last-msg {
+font-size: 0.8em;
+color: #999;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.contact-online {
+width: 10px; height: 10px;
+border-radius: 50%;
+background: #ccc;
+flex-shrink: 0;
+}
+.contact-online.active-dot { background: #4caf50; }
+
+.no-contacts {
+text-align: center;
+padding: 40px 20px;
+color: #aaa;
+}
+.no-contacts i { font-size: 3em; margin-bottom: 10px; }
+
+/* Chat area */
+.chat-area {
+display: flex;
+flex-direction: column;
+background: #e5ddd5 url('') center;
+background: #f0f2f5;
+}
+
+/* Chat header */
+.chat-header {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 12px 20px;
+background: white;
+border-bottom: 1px solid #e0e0e0;
+box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.chat-header .chat-avatar {
+width: 40px; height: 40px;
+border-radius: 50%;
+background: var(--accent);
+display: flex; align-items: center; justify-content: center;
+color: var(--primary); font-weight: bold;
+overflow: hidden;
+}
+.chat-header .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.chat-header .chat-info { flex: 1; }
+.chat-header .chat-info .name { font-weight: 600; }
+.chat-header .chat-info .status-text { font-size: 0.8em; color: #888; }
+.chat-header .call-actions { display: flex; gap: 10px; }
+.call-btn {
+width: 40px; height: 40px;
+border-radius: 50%;
+border: none;
+cursor: pointer;
+font-size: 1.1em;
+display: flex; align-items: center; justify-content: center;
+transition: 0.3s;
+}
+.call-btn.voice { background: #e0f7fa; color: var(--primary); }
+.call-btn.video { background: #e0f7fa; color: var(--primary); }
+.call-btn:hover { transform: scale(1.1); }
+.call-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Messages */
+.messages {
+flex: 1;
+overflow-y: auto;
+padding: 20px;
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+.message {
+max-width: 70%;
+padding: 10px 15px;
+border-radius: 12px;
+font-size: 0.95em;
+word-wrap: break-word;
+box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+animation: msgAppear 0.3s ease;
+}
+@keyframes msgAppear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; } }
+.message.sent {
+align-self: flex-end;
+background: var(--bubble-me);
+border-bottom-right-radius: 4px;
+}
+.message.received {
+align-self: flex-start;
+background: var(--bubble-them);
+border-bottom-left-radius: 4px;
+}
+.message .time { font-size: 0.7em; color: #999; margin-top: 3px; text-align: right; }
+.message .media-img { max-width: 100%; border-radius: 8px; margin-bottom: 5px; cursor: pointer; }
+
+.date-divider {
+text-align: center;
+font-size: 0.75em;
+color: #aaa;
+margin: 10px 0;
+background: rgba(255,255,255,0.7);
+padding: 3px 12px;
+border-radius: 10px;
+align-self: center;
+}
+
+/* No chat selected */
+.no-chat {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+color: #aaa;
+}
+.no-chat i { font-size: 4em; margin-bottom: 15px; }
+.no-chat h2 { color: #888; font-weight: normal; }
+.no-chat p { font-size: 0.9em; }
+
+/* Message input */
+.message-input-area {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 12px 20px;
+background: white;
+border-top: 1px solid #e0e0e0;
+}
+.message-input-area input {
+flex: 1;
+padding: 12px 16px;
+border: 1px solid #e0e0e0;
+border-radius: 25px;
+font-size: 1em;
+outline: none;
+transition: 0.3s;
+}
+.message-input-area input:focus { border-color: var(--primary); }
+.send-btn {
+width: 45px; height: 45px;
+border-radius: 50%;
+background: var(--primary);
+color: white;
+border: none;
+cursor: pointer;
+font-size: 1.1em;
+display: flex; align-items: center; justify-content: center;
+transition: 0.3s;
+}
+.send-btn:hover { background: var(--secondary); transform: scale(1.05); }
+.send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Call overlay */
+.call-overlay {
+display: none;
+position: fixed;
+top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(0,0,0,0.9);
+z-index: 1000;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+}
+.call-overlay.active { display: flex; }
+.call-remote-video, .call-local-video {
+border-radius: 15px;
+object-fit: cover;
+}
+.call-remote-video {
+width: 100%; height: 100%;
+position: absolute; top: 0; left: 0;
+}
+.call-local-video {
+width: 150px; height: 200px;
+position: absolute;
+bottom: 100px; right: 20px;
+border: 3px solid white;
+z-index: 10;
+}
+.call-info {
+position: absolute; top: 30px; left: 0; right: 0;
+text-align: center; color: white; z-index: 10;
+}
+.call-info h3 { font-size: 1.5em; margin-bottom: 5px; }
+.call-info p { opacity: 0.7; font-size: 0.9em; }
+.call-controls {
+position: absolute; bottom: 40px; left: 0; right: 0;
+display: flex; gap: 20px; justify-content: center; z-index: 10;
+}
+.call-control-btn {
+width: 60px; height: 60px;
+border-radius: 50%;
+border: none;
+cursor: pointer;
+font-size: 1.5em;
+display: flex; align-items: center; justify-content: center;
+transition: 0.3s;
+}
+.call-control-btn.mute { background: #fff; color: #333; }
+.call-control-btn.video-toggle { background: #fff; color: #333; }
+.call-control-btn.end { background: var(--danger); color: white; }
+.call-control-btn:hover { transform: scale(1.1); }
+
+/* Audio call (no video) */
+.audio-call-view {
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+height: 100%; color: white;
+}
+.audio-call-view .call-avatar {
+width: 120px; height: 120px;
+border-radius: 50%;
+background: rgba(255,255,255,0.2);
+display: flex; align-items: center; justify-content: center;
+font-size: 3em; margin-bottom: 20px;
+}
+.audio-call-view h3 { font-size: 1.5em; margin-bottom: 5px; }
+.audio-call-view p { opacity: 0.7; }
+
+/* Incoming call modal */
+.incoming-call {
+display: none;
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(0,0,0,0.8); z-index: 900;
+flex-direction: column;
+align-items: center; justify-content: center;
+color: white;
+}
+.incoming-call.active { display: flex; }
+.incoming-call .ic-avatar {
+width: 100px; height: 100px;
+border-radius: 50%; background: rgba(255,255,255,0.2);
+display: flex; align-items: center; justify-content: center;
+font-size: 2.5em; margin-bottom: 15px;
+}
+.incoming-call h3 { font-size: 1.5em; margin-bottom: 5px; }
+.incoming-call p { opacity: 0.7; margin-bottom: 30px; }
+.ic-buttons { display: flex; gap: 40px; }
+.ic-btn {
+width: 65px; height: 65px;
+border-radius: 50%; border: none; cursor: pointer;
+font-size: 1.5em; display: flex;
+align-items: center; justify-content: center;
+transition: 0.3s;
+}
+.ic-btn.accept { background: #4caf50; color: white; }
+.ic-btn.reject { background: var(--danger); color: white; }
+.ic-btn:hover { transform: scale(1.1); }
+
+/* Login redirect */
+.login-redirect {
+display: none;
+position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%);
+flex-direction: column; align-items: center; justify-content: center;
+z-index: 2000;
+}
+.login-redirect.active { display: flex; }
+.login-redirect i { font-size: 4em; color: var(--danger); margin-bottom: 15px; }
+.login-redirect h2 { color: var(--dark); }
+.login-redirect p { color: #888; margin: 10px 0 20px; }
+.login-redirect a {
+padding: 12px 30px; background: var(--primary); color: white;
+text-decoration: none; border-radius: 10px; font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+.chat-app { grid-template-columns: 1fr; }
+.contacts-sidebar { display: none; }
+.contacts-sidebar.show { display: flex; position: fixed; top: 56px; left: 0; right: 0; height: calc(100vh - 56px); z-index: 100; }
+.chat-area { display: flex; }
+.chat-area.hide { display: none; }
+.back-to-contacts { display: block !important; }
+}
+.back-to-contacts { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Login check -->
+<div class="login-redirect" id="loginRedirect">
+<i class="fas fa-lock"></i>
+<h2>Da Allah Shiga (Please Login)</h2>
+<p>Ba ka shiga ba. Kai dashboard ko login.</p>
+<a href="login.html">Shiga (Login)</a>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+<a href="dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+<span class="brand"><i class="fab fa-whatsapp"></i> H A D Chat</span>
+<div class="status">
+<span class="status-dot" id="connStatus"></span>
+<span id="connText">Ana kafa...</span>
+</div>
+</div>
+
+<!-- Chat App -->
+<div class="chat-app">
+
+<!-- Contacts sidebar -->
+<div class="contacts-sidebar" id="contactsSidebar">
+<div class="contacts-header">
+<h3><i class="fas fa-users"></i> Abokan Hira (Contacts)</h3>
+<div class="add-contact">
+<input type="text" id="addContactInput" placeholder="Lambar waya...">
+<button onclick="addContact()"><i class="fas fa-plus"></i> Kara</button>
+</div>
+</div>
+<div class="contacts-list" id="contactsList">
+<div class="no-contacts" id="noContacts">
+<i class="fas fa-user-plus"></i>
+<p>Ba ku da abokan hira. Kara da lambar waya.</p>
+</div>
+</div>
+</div>
+
+<!-- Chat area -->
+<div class="chat-area" id="chatArea">
+<div class="no-chat" id="noChat">
+<i class="fas fa-comments"></i>
+<h2>Barka da zuwa H A D Chat!</h2>
+<p>Zabi abokin hira ko kara sabo don fara hira.</p>
+</div>
+
+<div id="chatView" style="display:none; flex-direction:column; height:100%;">
+<div class="chat-header">
+<span class="back-to-contacts" onclick="showContacts()" style="cursor:pointer;font-size:1.2em;color:var(--primary);">
+<i class="fas fa-bars"></i>
+</span>
+<div class="chat-avatar" id="chatAvatar"><i class="fas fa-user"></i></div>
+<div class="chat-info">
+<div class="name" id="chatName">User</div>
+<div class="status-text" id="chatStatus">Offline</div>
+</div>
+<div class="call-actions">
+<button class="call-btn voice" id="voiceCallBtn" onclick="startCall('audio')" title="Kiran Waya">
+<i class="fas fa-phone"></i>
+</button>
+<button class="call-btn video" id="videoCallBtn" onclick="startCall('video')" title="Bidiyo">
+<i class="fas fa-video"></i>
+</button>
+</div>
+</div>
+
+<div class="messages" id="messagesArea"></div>
+
+<div class="message-input-area">
+<input type="text" id="messageInput" placeholder="Rubuta sako..." onkeypress="if(event.key==='Enter')sendMessage()">
+<button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Incoming call -->
+<div class="incoming-call" id="incomingCall">
+<div class="ic-avatar" id="icAvatar"><i class="fas fa-user"></i></div>
+<h3 id="icName">Mai kira</h3>
+<p id="icType">Kiran waya...</p>
+<div class="ic-buttons">
+<button class="ic-btn reject" onclick="rejectIncomingCall()"><i class="fas fa-phone-slash"></i></button>
+<button class="ic-btn accept" onclick="acceptIncomingCall()"><i class="fas fa-phone"></i></button>
+</div>
+</div>
+
+<!-- Call overlay -->
+<div class="call-overlay" id="callOverlay">
+<div class="call-info" id="callInfoBar">
+<h3 id="callName">User</h3>
+<p id="callTimer">00:00</p>
+</div>
+<video class="call-remote-video" id="remoteVideo" autoplay playsinline></video>
+<video class="call-local-video" id="localVideo" autoplay playsinline muted></video>
+<div class="audio-call-view" id="audioCallView" style="display:none;">
+<div class="call-avatar"><i class="fas fa-user"></i></div>
+<h3 id="audioCallName">User</h3>
+<p id="audioCallTimer">00:00</p>
+</div>
+<div class="call-controls">
+<button class="call-control-btn mute" id="muteBtn" onclick="toggleMute()"><i class="fas fa-microphone"></i></button>
+<button class="call-control-btn video-toggle" id="videoToggleBtn" onclick="toggleVideo()"><i class="fas fa-video"></i></button>
+<button class="call-control-btn end" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+</div>
+</div>
+
+<script>
+// ===== User session =====
+let currentUser = JSON.parse(localStorage.getItem('hadchat_currentUser') || 'null');
+let peer = null;
+let connections = {}; // { phone: DataConnection }
+let currentChatPhone = null;
+let contacts = JSON.parse(localStorage.getItem('hadchat_contacts_' + (currentUser?.phone || '') ) || '[]');
+let chatHistory = {}; // loaded per contact
+
+// Call state
+let currentCall = null; // MediaConnection
+let localStream = null;
+let callTimerInterval = null;
+let callStartTime = null;
+let isMuted = false;
+let isVideoOff = false;
+let pendingIncomingCall = null;
+
+// ===== Auth check =====
+if (!currentUser) {
+document.getElementById('loginRedirect').classList.add('active');
+} else {
+initApp();
+}
+
+function initApp() {
+renderContacts();
+connectPeer();
+}
+
+// ===== PeerJS connection =====
+function connectPeer() {
+// Use phone number as peer ID
+peer = new Peer('hadchat_' + currentUser.phone, {
+debug: 1
+});
+
+peer.on('open', function(id) {
+updateConnectionStatus(true);
+// Try to reconnect to all contacts
+contacts.forEach(c => tryConnect(c.phone));
+});
+
+peer.on('connection', function(conn) {
+handleIncomingConnection(conn);
+});
+
+peer.on('call', function(call) {
+pendingIncomingCall = call;
+showIncomingCall(call);
+});
+
+peer.on('error', function(err) {
+console.error('Peer error:', err);
+updateConnectionStatus(false);
+// Try to reconnect after 3 seconds
+setTimeout(connectPeer, 3000);
+});
+
+peer.on('disconnected', function() {
+updateConnectionStatus(false);
+// Try to reconnect
+if (!peer.destroyed) {
+setTimeout(() => peer.reconnect(), 2000);
+}
+});
+}
+
+function updateConnectionStatus(online) {
+const dot = document.getElementById('connStatus');
+const text = document.getElementById('connText');
+if (online) {
+dot.className = 'status-dot online';
+text.textContent = 'Kan layi (Online)';
+} else {
+dot.className = 'status-dot offline';
+text.textContent = 'Ba a layi (Offline)';
+}
+}
+
+// ===== Connection management =====
+function tryConnect(phone) {
+if (phone === currentUser.phone) return;
+if (connections[phone] && connections[phone].open) return;
+
+const conn = peer.connect('hadchat_' + phone, { reliable: true });
+
+conn.on('open', function() {
+connections[phone] = conn;
+updateContactStatus(phone, true);
+// Send presence update
+conn.send({ type: 'presence', name: currentUser.fullName, photo: currentUser.profilePhoto });
+});
+
+conn.on('data', function(data) {
+handleIncomingData(phone, data);
+});
+
+conn.on('close', function() {
+delete connections[phone];
+updateContactStatus(phone, false);
+});
+
+conn.on('error', function() {
+updateContactStatus(phone, false);
+});
+}
+
+function handleIncomingConnection(conn) {
+const phone = conn.peer.replace('hadchat_', '');
+connections[phone] = conn;
+
+conn.on('data', function(data) {
+handleIncomingData(phone, data);
+});
+
+conn.on('close', function() {
+delete connections[phone];
+updateContactStatus(phone, false);
+});
+
+conn.on('open', function() {
+// Send our presence
+conn.send({ type: 'presence', name: currentUser.fullName, photo: currentUser.profilePhoto });
+updateContactStatus(phone, true);
+});
+}
+
+function handleIncomingData(phone, data) {
+if (data.type === 'message') {
+saveMessage(phone, 'received', data.text, data.timestamp);
+if (currentChatPhone === phone) {
+renderMessage('received', data.text, data.timestamp);
+}
+// Try to send delivery confirmation
+if (connections[phone] && connections[phone].open) {
+connections[phone].send({ type: 'delivered', messageId: data.timestamp });
+}
+} else if (data.type === 'presence') {
+updateContactStatus(phone, true, data.name, data.photo);
+} else if (data.type === 'delivered') {
+// Message delivered - could update UI
+}
+}
+}
+
+// ===== Contacts =====
+function addContact() {
+const input = document.getElementById('addContactInput');
+const phone = input.value.trim();
+
+if (!phone) {
+alert('Shigar da lambar waya!');
+return;
+}
+if (phone === currentUser.phone) {
+alert('Ba za ka iya kara kansa ba!');
+return;
+}
+if (contacts.find(c => c.phone === phone)) {
+alert('Wannan abokin hira yana nan!');
+return;
+}
+
+// Check if user exists in registered users
+const users = JSON.parse(localStorage.getItem('hadchat_users') || '[]');
+const foundUser = users.find(u => u.phone === phone);
+
+const contact = {
+phone: phone,
+name: foundUser ? foundUser.fullName : phone,
+photo: foundUser && foundUser.profilePhoto ? foundUser.profilePhoto : null,
+online: false
+};
+
+contacts.push(contact);
+saveContacts();
+renderContacts();
+input.value = '';
+
+// Try to connect
+tryConnect(phone);
+}
+
+function saveContacts() {
+localStorage.setItem('hadchat_contacts_' + currentUser.phone, JSON.stringify(contacts));
+}
+
+function updateContactStatus(phone, online, name, photo) {
+const contact = contacts.find(c => c.phone === phone);
+if (contact) {
+contact.online = online;
+if (name) contact.name = name;
+if (photo) contact.photo = photo;
+saveContacts();
+renderContacts();
+if (currentChatPhone === phone) {
+document.getElementById('chatStatus').textContent = online ? 'Kan layi (Online)' : 'Ba a layi (Offline)';
+updateCallButtons(online);
+}
+}
+}
+
+function renderContacts() {
+const list = document.getElementById('contactsList');
+const noContacts = document.getElementById('noContacts');
+
+if (contacts.length === 0) {
+noContacts.style.display = 'block';
+list.innerHTML = '';
+list.appendChild(noContacts);
+return;
+}
+
+noContacts.style.display = 'none';
+list.innerHTML = '';
+
+// Sort: online first
+const sorted = [...contacts].sort((a, b) => (b.online ? 1 : 0) - (a.online ? 1 : 0));
+
+sorted.forEach(contact => {
+const item = document.createElement('div');
+item.className = 'contact-item' + (currentChatPhone === contact.phone ? ' active' : '');
+item.onclick = () => openChat(contact.phone);
+
+const avatarHTML = contact.photo
+? `<img src="${contact.photo}">`
+: `<i class="fas fa-user"></i>`;
+
+item.innerHTML = `
+<div class="contact-avatar">${avatarHTML}</div>
+<div class="contact-info">
+<div class="name">${contact.name}</div>
+<div class="last-msg">${contact.online ? 'Kan layi' : 'Ba a layi'}</div>
+</div>
+<div class="contact-online ${contact.online ? 'active-dot' : ''}"></div>
+`;
+list.appendChild(item);
+});
+}
+
+// ===== Chat =====
+function openChat(phone) {
+currentChatPhone = phone;
+const contact = contacts.find(c => c.phone === phone);
+if (!contact) return;
+
+document.getElementById('noChat').style.display = 'none';
+document.getElementById('chatView').style.display = 'flex';
+
+document.getElementById('chatName').textContent = contact.name;
+document.getElementById('chatStatus').textContent = contact.online ? 'Kan layi (Online)' : 'Ba a layi (Offline)';
+
+const avatar = document.getElementById('chatAvatar');
+avatar.innerHTML = contact.photo ? `<img src="${contact.photo}">` : `<i class="fas fa-user"></i>`;
+
+updateCallButtons(contact.online);
+
+// Load chat history
+loadChatHistory(phone);
+renderContacts();
+
+// On mobile, show chat view
+if (window.innerWidth <= 768) {
+document.getElementById('contactsSidebar').classList.remove('show');
+}
+}
+
+function updateCallButtons(online) {
+const voiceBtn = document.getElementById('voiceCallBtn');
+const videoBtn = document.getElementById('videoCallBtn');
+if (online) {
+voiceBtn.classList.remove('disabled');
+videoBtn.classList.remove('disabled');
+} else {
+voiceBtn.classList.add('disabled');
+videoBtn.classList.add('disabled');
+}
+}
+
+function showContacts() {
+document.getElementById('contactsSidebar').classList.toggle('show');
+}
+
+// ===== Messages =====
+function loadChatHistory(phone) {
+const key = 'hadchat_msgs_' + currentUser.phone + '_' + phone;
+const history = JSON.parse(localStorage.getItem(key) || '[]');
+chatHistory[phone] = history;
+const area = document.getElementById('messagesArea');
+area.innerHTML = '';
+history.forEach(msg => {
+renderMessage(msg.dir, msg.text, msg.timestamp, false);
+});
+area.scrollTop = area.scrollHeight;
+}
+
+function saveMessage(phone, dir, text, timestamp) {
+const key = 'hadchat_msgs_' + currentUser.phone + '_' + phone;
+const history = JSON.parse(localStorage.getItem(key) || '[]');
+history.push({ dir, text, timestamp });
+localStorage.setItem(key, JSON.stringify(history));
+}
+
+function renderMessage(dir, text, timestamp, animate = true) {
+const area = document.getElementById('messagesArea');
+const msg = document.createElement('div');
+msg.className = 'message ' + dir;
+
+const time = timestamp ? new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+
+// Check if text is a data URL (image)
+if (text.startsWith('data:image')) {
+msg.innerHTML = `<img class="media-img" src="${text}" onclick="window.open('${text}')">`;
+} else {
+msg.textContent = text;
+}
+
+if (time) {
+const timeEl = document.createElement('div');
+timeEl.className = 'time';
+timeEl.textContent = time;
+msg.appendChild(timeEl);
+}
+
+area.appendChild(msg);
+area.scrollTop = area.scrollHeight;
+}
+
+function sendMessage() {
+const input = document.getElementById('messageInput');
+const text = input.value.trim();
+if (!text || !currentChatPhone) return;
+
+const timestamp = Date.now();
+
+// Save to history
+saveMessage(currentChatPhone, 'sent', text, timestamp);
+renderMessage('sent', text, timestamp);
+
+// Send via PeerJS
+const conn = connections[currentChatPhone];
+if (conn && conn.open) {
+conn.send({ type: 'message', text: text, timestamp: timestamp });
+} else {
+// Try to reconnect
+tryConnect(currentChatPhone);
+// Retry send after short delay
+setTimeout(() => {
+if (connections[currentChatPhone] && connections[currentChatPhone].open) {
+connections[currentChatPhone].send({ type: 'message', text: text, timestamp: timestamp });
+} else {
+// Show error indicator
+alert('Mai karbar ba kan layi ba. Za a aika idan ya shigo.');
+}
+}, 2000);
+}
+
+input.value = '';
+}
+
+// ===== Voice / Video Calls =====
+async function startCall(type) {
+if (!currentChatPhone) return;
+const contact = contacts.find(c => c.phone === currentChatPhone);
+if (!contact || !contact.online) {
+alert('Wannan mutum ba kan layi ba!');
+return;
+}
+
+try {
+localStream = await navigator.mediaDevices.getUserMedia({
+audio: true,
+video: type === 'video'
+});
+} catch (err) {
+alert('Ba za ka iya kiran ba. Ka tabbatar ka bada izinin camera/microphone.');
+return;
+}
+
+// Show call overlay
+showCallOverlay(type, contact.name);
+
+// Start call via PeerJS
+currentCall = peer.call('hadchat_' + currentChatPhone, localStream, {
+metadata: { type: type, name: currentUser.fullName }
+});
+
+if (currentCall) {
+currentCall.on('stream', function(remoteStream) {
+document.getElementById('remoteVideo').srcObject = remoteStream;
+});
+
+currentCall.on('close', function() {
+endCall();
+});
+
+currentCall.on('error', function(err) {
+console.error('Call error:', err);
+endCall();
+});
+}
+
+startCallTimer();
+}
+
+function showIncomingCall(call) {
+const callerPeer = call.peer.replace('hadchat_', '');
+const contact = contacts.find(c => c.phone === callerPeer);
+const callerName = contact ? contact.name : callerPeer;
+const callType = call.metadata && call.metadata.type === 'video' ? 'Bidiyo kira' : 'Kiran waya';
+
+document.getElementById('icName').textContent = callerName;
+document.getElementById('icType').textContent = callType + '...';
+
+const avatar = document.getElementById('icAvatar');
+if (contact && contact.photo) {
+avatar.innerHTML = `<img src="${contact.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+} else {
+avatar.innerHTML = `<i class="fas fa-user"></i>`;
+}
+
+document.getElementById('incomingCall').classList.add('active');
+}
+
+async function acceptIncomingCall() {
+document.getElementById('incomingCall').classList.remove('active');
+if (!pendingIncomingCall) return;
+
+const callType = pendingIncomingCall.metadata && pendingIncomingCall.metadata.type === 'video' ? 'video' : 'audio';
+const callerPeer = pendingIncomingCall.peer.replace('hadchat_', '');
+const contact = contacts.find(c => c.phone === callerPeer);
+
+try {
+localStream = await navigator.mediaDevices.getUserMedia({
+audio: true,
+video: callType === 'video'
+});
+} catch (err) {
+// If can't get video, fall back to audio only
+try {
+localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+} catch (err2) {
+alert('Ba za ka iya karbar kiran ba. Ka bada izinin microphone.');
+pendingIncomingCall.close();
+pendingIncomingCall = null;
+return;
+}
+}
+
+showCallOverlay(callType, contact ? contact.name : callerPeer);
+
+pendingIncomingCall.answer(localStream);
+currentCall = pendingIncomingCall;
+
+currentCall.on('stream', function(remoteStream) {
+document.getElementById('remoteVideo').srcObject = remoteStream;
+});
+
+currentCall.on('close', function() {
+endCall();
+});
+
+pendingIncomingCall = null;
+startCallTimer();
+}
+
+function rejectIncomingCall() {
+document.getElementById('incomingCall').classList.remove('active');
+if (pendingIncomingCall) {
+pendingIncomingCall.close();
+pendingIncomingCall = null;
+}
+}
+
+function showCallOverlay(type, name) {
+const overlay = document.getElementById('callOverlay');
+overlay.classList.add('active');
+
+if (type === 'video') {
+document.getElementById('audioCallView').style.display = 'none';
+document.getElementById('remoteVideo').style.display = 'block';
+document.getElementById('localVideo').style.display = 'block';
+document.getElementById('localVideo').srcObject = localStream;
+} else {
+document.getElementById('remoteVideo').style.display = 'none';
+document.getElementById('localVideo').style.display = 'none';
+document.getElementById('audioCallView').style.display = 'flex';
+document.getElementById('audioCallName').textContent = name;
+}
+
+document.getElementById('callName').textContent = name;
+isMuted = false;
+isVideoOff = false;
+document.getElementById('muteBtn').innerHTML = '<i class="fas fa-microphone"></i>';
+document.getElementById('videoToggleBtn').innerHTML = '<i class="fas fa-video"></i>';
+}
+
+function startCallTimer() {
+callStartTime = Date.now();
+callTimerInterval = setInterval(() => {
+const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+const secs = String(elapsed % 60).padStart(2, '0');
+const timeStr = mins + ':' + secs;
+document.getElementById('callTimer').textContent = timeStr;
+document.getElementById('audioCallTimer').textContent = timeStr;
+}, 1000);
+}
+
+function endCall() {
+if (currentCall) {
+currentCall.close();
+currentCall = null;
+}
+
+if (localStream) {
+localStream.getTracks().forEach(track => track.stop());
+localStream = null;
+}
+
+if (callTimerInterval) {
+clearInterval(callTimerInterval);
+callTimerInterval = null;
+}
+
+document.getElementById('callOverlay').classList.remove('active');
+document.getElementById('remoteVideo').srcObject = null;
+document.getElementById('localVideo').srcObject = null;
+}
+
+function toggleMute() {
+if (!localStream) return;
+isMuted = !isMuted;
+localStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+document.getElementById('muteBtn').innerHTML = isMuted
+? '<i class="fas fa-microphone-slash"></i>'
+: '<i class="fas fa-microphone"></i>';
+}
+
+function toggleVideo() {
+if (!localStream) return;
+isVideoOff = !isVideoOff;
+localStream.getVideoTracks().forEach(track => track.enabled = !isVideoOff);
+document.getElementById('videoToggleBtn').innerHTML = isVideoOff
+? '<i class="fas fa-video-slash"></i>'
+: '<i class="fas fa-video"></i>';
+}
+
+// ===== Handle page close =====
+window.addEventListener('beforeunload', function() {
+if (peer && !peer.destroyed) {
+peer.destroy();
+}
+if (currentCall) {
+currentCall.close();
+}
+if (localStream) {
+localStream.getTracks().forEach(track => track.stop());
+}
+});
+
+// ===== Update contact list periodically =====
+setInterval(() => {
+contacts.forEach(c => {
+if (connections[c.phone] && connections[c.phone].open) {
+c.online = true;
+} else {
+c.online = false;
+}
+});
+renderContacts();
+}, 5000);
+</script>
+
+</body>
+</html>
