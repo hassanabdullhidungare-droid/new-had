@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ha">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H A D Chat - Manhajar Hira</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+--primary: #008069;
+--secondary: #00695c;
+--dark: #073042;
+--text: #333;
+--light: #f9f9f9;
+}
+
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+margin: 0;
+padding: 0;
+color: var(--text);
+line-height: 1.6;
+}
+
+/* Navigation */
+nav {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 20px 5%;
+background: white;
+box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+position: sticky;
+top: 0;
+z-index: 100;
+}
+
+.logo {
+font-size: 1.5em;
+font-weight: bold;
+color: var(--primary);
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.nav-links {
+display: flex;
+align-items: center;
+}
+
+.nav-links a {
+text-decoration: none;
+color: var(--text);
+margin-left: 20px;
+font-weight: 500;
+}
+
+.nav-links a:hover {
+color: var(--primary);
+}
+
+.nav-links .btn-register {
+background: var(--primary);
+color: white !important;
+padding: 8px 20px;
+border-radius: 20px;
+font-weight: 600;
+}
+
+.nav-links .btn-register:hover {
+background: var(--secondary);
+}
+
+/* Hero Section */
+.hero {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 50px 5%;
+background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%);
+min-height: 80vh;
+}
+
+.hero-text {
+flex: 1;
+padding-right: 50px;
+}
+
+.hero-text h1 {
+font-size: 3.5em;
+margin-bottom: 20px;
+color: var(--dark);
+line-height: 1.2;
+}
+
+.hero-text p {
+font-size: 1.2em;
+color: #666;
+margin-bottom: 30px;
+}
+
+.hero-image {
+flex: 1;
+text-align: center;
+}
+
+.hero-image img {
+max-width: 100%;
+border-radius: 20px;
+box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+transform: rotate(-2deg);
+transition: 0.3s;
+}
+
+.hero-image img:hover {
+transform: rotate(0deg) scale(1.02);
+}
+
+.cta-button {
+display: inline-flex;
+align-items: center;
+gap: 10px;
+background-color: var(--primary);
+color: white;
+padding: 15px 30px;
+border-radius: 30px;
+text-decoration: none;
+font-size: 1.1em;
+font-weight: bold;
+box-shadow: 0 5px 15px rgba(0, 128, 105, 0.4);
+transition: 0.3s;
+}
+
+.cta-button:hover {
+background-color: var(--secondary);
+transform: translateY(-3px);
+}
+
+.hero-buttons {
+display: flex;
+gap: 15px;
+flex-wrap: wrap;
+}
+
+/* Features */
+.features {
+padding: 80px 5%;
+background: white;
+text-align: center;
+}
+
+.features h2 {
+font-size: 2.5em;
+margin-bottom: 50px;
+color: var(--dark);
+}
+
+.feature-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+gap: 30px;
+}
+
+.feature-card {
+padding: 30px;
+border-radius: 15px;
+background: var(--light);
+transition: 0.3s;
+}
+
+.feature-card:hover {
+transform: translateY(-10px);
+box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.feature-card i {
+font-size: 3em;
+color: var(--primary);
+margin-bottom: 20px;
+}
+
+.feature-card h3 {
+margin-bottom: 15px;
+font-size: 1.5em;
+}
+
+/* Footer */
+footer {
+background: var(--dark);
+color: white;
+padding: 40px 5%;
+text-align: center;
+}
+
+footer a {
+color: #aaddd5;
+text-decoration: none;
+}
+
+footer a:hover {
+color: white;
+}
+
+@media (max-width: 768px) {
+.hero {
+flex-direction: column-reverse;
+text-align: center;
+padding-top: 30px;
+}
+
+.hero-text {
+padding-right: 0;
+}
+
+.hero-text h1 {
+font-size: 2.5em;
+}
+
+.hero-image {
+margin-bottom: 40px;
+}
+}
+</style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">
+            <i class="fab fa-whatsapp"></i> H A D Chat
+        </div>
+        <div class="nav-links">
+            <select id="langSelect" onchange="changeLanguage(this.value)"
+                style="padding: 5px; border-radius: 5px; border: 1px solid #ddd; margin-right: 15px;">
+                <option value="ha">Hausa</option>
+                <option value="en">English</option>
+            </select>
+            <a href="#features" data-i18n="features">Abubuwa</a>
+            <a href="login.html" data-i18n="login">Login</a>
+            <a href="register.html" class="btn-register" data-i18n="register">Yi Rejista</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-text">
+            <h1 data-i18n="heroTitle">Yi Hira Cikin <br> Aminci da Nishadi</h1>
+            <p data-i18n="heroDesc">Manhajar H A D Chat tana ba ku damar tura sakonni, hotuna, da bidiyo cikin sauki.
+                Muna da tsarin tsaro mai karfi da kuma kyaututtuka ga masu amfani.</p>
+
+            <div class="hero-buttons">
+                <a href="register.html" class="cta-button">
+                    <i class="fas fa-user-plus"></i> <span data-i18n="startNow">Fara Yanzu (Register)</span>
+                </a>
+                <a href="login.html" class="cta-button" style="background:#e0e0e0;color:#333;">
+                    <i class="fas fa-sign-in-alt"></i> <span data-i18n="login2">Shiga (Login)</span>
+                </a>
+            </div>
+            <div style="margin-top:15px;">
+                <a href="chat.html" style="font-size:1em;color:var(--primary);text-decoration:none;margin-right:15px;">
+                    <i class="fab fa-android"></i> <span data-i18n="downloadAndroid">Android</span>
+                </a>
+                <a href="chat.html" style="font-size:1em;color:#000;text-decoration:none;">
+                    <i class="fab fa-apple"></i> <span data-i18n="downloadIphone">iPhone</span>
+                </a>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="welcome_hero.png" alt="H A D Chat Welcome">
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <h2 data-i18n="featuresTitle">Me Za Ku Samu?</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <i class="fas fa-shield-alt"></i>
+                <h3 data-i18n="safetyTitle">Tsaro (Safety)</h3>
+                <p data-i18n="safetyDesc">Muna da tsarin hana zage-zage da batsa don kare mutuncin kowa.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-gift"></i>
+                <h3 data-i18n="rewardsTitle">Kyaututtuka (Rewards)</h3>
+                <p data-i18n="rewardsDesc">Tara maki (Gib) duk lokacin da kake amfani da manhajar.</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-camera"></i>
+                <h3 data-i18n="mediaTitle">Hotuna & Bidiyo</h3>
+                <p data-i18n="mediaDesc">Tura hotuna da bidiyo masu inganci ga abokanka.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 H A D Chat App. All rights reserved.</p>
+        <p><a href="login.html">Login</a> | <a href="register.html">Register</a> | <a href="dashboard.html">Dashboard</a></p>
+    </footer>
+
+    <script>
+        // Check if user is already logged in
+        const currentUser = JSON.parse(localStorage.getItem('hadchat_currentUser') || 'null');
+        if (currentUser) {
+            // Replace register button with dashboard link
+            const registerBtn = document.querySelector('.btn-register');
+            if (registerBtn) {
+                registerBtn.textContent = 'Dashboard';
+                registerBtn.href = 'dashboard.html';
+            }
+        }
+
+        const translations = {
+            ha: {
+                features: "Abubuwa",
+                login: "Login",
+                register: "Yi Rejista",
+                heroTitle: "Yi Hira Cikin <br> Aminci da Nishadi",
+                heroDesc: "Manhajar H A D Chat tana ba ku damar tura sakonni, hotuna, da bidiyo cikin sauki. Muna da tsarin tsaro mai karfi da kuma kyaututtuka ga masu amfani.",
+                startNow: "Fara Yanzu (Register)",
+                login2: "Shiga (Login)",
+                downloadAndroid: "Sauko da Android",
+                downloadIphone: "Sauko da iPhone",
+                featuresTitle: "Me Za Ku Samu?",
+                safetyTitle: "Tsaro (Safety)",
+                safetyDesc: "Muna da tsarin hana zage-zage da batsa don kare mutuncin kowa.",
+                rewardsTitle: "Kyaututtuka (Rewards)",
+                rewardsDesc: "Tara maki (Gib) duk lokacin da kake amfani da manhajar.",
+                mediaTitle: "Hotuna & Bidiyo",
+                mediaDesc: "Tura hotuna da bidiyo masu inganci ga abokanka."
+            },
+            en: {
+                features: "Features",
+                login: "Login",
+                register: "Register",
+                heroTitle: "Chat with <br> Safety and Fun",
+                heroDesc: "H A D Chat App allows you to send messages, photos, and videos easily. We have a strong safety system and rewards for users.",
+                startNow: "Start Now (Register)",
+                login2: "Login",
+                downloadAndroid: "Download for Android",
+                downloadIphone: "Download for iPhone",
+                featuresTitle: "What Will You Get?",
+                safetyTitle: "Safety",
+                safetyDesc: "We have a system to prevent insults and nudity to protect everyone's dignity.",
+                rewardsTitle: "Rewards",
+                rewardsDesc: "Earn points (Gib) every time you use the app.",
+                mediaTitle: "Photos & Videos",
+                mediaDesc: "Send high-quality photos and videos to your friends."
+            }
+        };
+
+        function changeLanguage(lang) {
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.innerHTML = translations[lang][key];
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
